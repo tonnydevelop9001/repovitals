@@ -10,7 +10,7 @@ export function Footer() {
           <span>for the open source community.</span>
         </p>
         <p className="text-text-muted text-xs mt-2">
-          RepoLens is an open-source tool and is not affiliated with GitHub.
+          RepoVitals is an open-source tool and is not affiliated with GitHub.
         </p>
       </div>
     </footer>

@@ -1,8 +1,8 @@
-# RepoLens
+# RepoVitals
 
 ![CI](https://github.com/tony/repolens/actions/workflows/ci.yml/badge.svg)
 
-RepoLens helps developers and maintainers quickly evaluate the health and maintainability of public GitHub repositories right from their browser.
+RepoVitals helps developers and maintainers quickly evaluate the health and maintainability of public GitHub repositories right from their browser.
 
 ## Features
 
@@ -13,7 +13,7 @@ RepoLens helps developers and maintainers quickly evaluate the health and mainta
 
 ## How It Works
 
-RepoLens makes unauthenticated requests to the public GitHub REST API directly from your browser. It parses the URL, fetches repository metadata, checks for `README.md` and GitHub Actions workflows, and calculates a score based on a transparent heuristic model.
+RepoVitals makes unauthenticated requests to the public GitHub REST API directly from your browser. It parses the URL, fetches repository metadata, checks for `README.md` and GitHub Actions workflows, and calculates a score based on a transparent heuristic model.
 
 ### Scoring Model
 
@@ -65,7 +65,7 @@ RepoLens makes unauthenticated requests to the public GitHub REST API directly f
 
 ## Deployment
 
-Since RepoLens has no backend, it can be deployed to any static hosting provider.
+Since RepoVitals has no backend, it can be deployed to any static hosting provider.
 
 ### Deploy to Vercel
 

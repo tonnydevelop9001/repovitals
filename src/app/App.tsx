@@ -117,7 +117,7 @@ function App() {
             <div className="mt-16 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-2xl p-6 md:p-8 text-center max-w-3xl mx-auto">
               <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">About the Score</h3>
               <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
-                RepoLens uses a simple heuristic model to evaluate repository health based on best practices like having a README, an open-source license, recent activity, and CI/CD workflows. 
+                RepoVitals uses a simple heuristic model to evaluate repository health based on best practices like having a README, an open-source license, recent activity, and CI/CD workflows. 
                 This score is meant to guide improvements and is not a definitive judgment of the project's quality or utility. All checks are performed locally in your browser using the public GitHub REST API.
               </p>
             </div>

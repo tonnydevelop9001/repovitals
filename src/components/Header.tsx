@@ -10,7 +10,7 @@ export function Header() {
             <Activity className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400">
-            RepoLens
+            RepoVitals
           </span>
         </div>
         
