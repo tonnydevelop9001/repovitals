@@ -45,5 +45,7 @@ export const mockRepoData: RepositoryData = {
     CSS: 5000
   },
   hasReadme: true,
-  hasWorkflows: true
+  hasWorkflows: true,
+  hasContributing: true,
+  hasSecurity: true
 };

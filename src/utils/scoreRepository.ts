@@ -6,15 +6,15 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
   const suggestions: string[] = [];
   let score = 0;
 
-  // 1. README present: 20 points
+  // 1. README present: 15 points
   if (data.hasReadme) {
-    score += 20;
+    score += 15;
     criteria.push({
       id: 'readme',
       label: 'README File',
       passed: true,
-      pointsEarned: 20,
-      maxPoints: 20,
+      pointsEarned: 15,
+      maxPoints: 15,
       explanation: 'A README file is present.'
     });
   } else {
@@ -23,7 +23,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
       label: 'README File',
       passed: false,
       pointsEarned: 0,
-      maxPoints: 20,
+      maxPoints: 15,
       explanation: 'No README found in the repository root.'
     });
     suggestions.push('Add a README with installation and usage instructions.');
@@ -176,16 +176,16 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Consider setting up GitHub Actions for tests or linting.');
   }
 
-  // 8. Repository has useful metadata: 10 points
+  // 8. Repository has useful metadata: 5 points
   const hasUsefulMetadata = !!data.repo.homepage || data.repo.stargazers_count > 0 || data.repo.forks_count > 0;
   if (hasUsefulMetadata) {
-    score += 10;
+    score += 5;
     criteria.push({
       id: 'metadata',
       label: 'Useful Metadata',
       passed: true,
-      pointsEarned: 10,
-      maxPoints: 10,
+      pointsEarned: 5,
+      maxPoints: 5,
       explanation: 'Repository has homepage, stars, or forks.'
     });
   } else {
@@ -194,9 +194,55 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
       label: 'Useful Metadata',
       passed: false,
       pointsEarned: 0,
-      maxPoints: 10,
+      maxPoints: 5,
       explanation: 'Missing homepage and engagement metrics.'
     });
+  }
+
+  // 9. Contribution Guidelines: 5 points
+  if (data.hasContributing) {
+    score += 5;
+    criteria.push({
+      id: 'contributing',
+      label: 'Contribution Guidelines',
+      passed: true,
+      pointsEarned: 5,
+      maxPoints: 5,
+      explanation: 'CONTRIBUTING.md file is present.'
+    });
+  } else {
+    criteria.push({
+      id: 'contributing',
+      label: 'Contribution Guidelines',
+      passed: false,
+      pointsEarned: 0,
+      maxPoints: 5,
+      explanation: 'No CONTRIBUTING.md found.'
+    });
+    suggestions.push('Add a CONTRIBUTING.md file to help new developers get started.');
+  }
+
+  // 10. Security Policy: 5 points
+  if (data.hasSecurity) {
+    score += 5;
+    criteria.push({
+      id: 'security',
+      label: 'Security Policy',
+      passed: true,
+      pointsEarned: 5,
+      maxPoints: 5,
+      explanation: 'SECURITY.md file is present.'
+    });
+  } else {
+    criteria.push({
+      id: 'security',
+      label: 'Security Policy',
+      passed: false,
+      pointsEarned: 0,
+      maxPoints: 5,
+      explanation: 'No SECURITY.md found.'
+    });
+    suggestions.push('Add a SECURITY.md file detailing how to report vulnerabilities.');
   }
 
   // Calculate grade

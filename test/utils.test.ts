@@ -57,15 +57,17 @@ describe('scoreRepository', () => {
   it('gives perfect score for ideal repo', () => {
     const result = scoreRepository(mockRepoData);
     expect(result.score).toBe(100);
-    // README: 20
+    // README: 15
     // License: 15
     // Activity: 15
     // Description/Topics: 10
     // Issues: 10
     // Languages: 10
     // Workflows: 10
-    // Metadata: 10
-    // Total max: 20+15+15+10+10+10+10+10 = 100
+    // Metadata: 5
+    // Contributing: 5
+    // Security: 5
+    // Total max: 15+15+15+10+10+10+10+5+5+5 = 100
   });
 
   it('penalizes missing readme', () => {
@@ -89,7 +91,7 @@ describe('markdown report generators', () => {
     const report = generateSingleMarkdownReport(mockRepoData, result);
     expect(report).toContain('### 🩺 RepoVitals Health Report: [vercel/next.js]');
     expect(report).toContain('**Health Score:** `100/100` (Excellent)');
-    expect(report).toContain('| **README File** | ✅ Passed | `20/20` |');
+    expect(report).toContain('| **README File** | ✅ Passed | `15/15` |');
   });
 
   it('generates a comparison markdown report', () => {

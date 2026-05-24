@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { RepoSearchForm } from '../components/RepoSearchForm';
@@ -9,6 +9,8 @@ import { RepoSummary } from '../components/RepoSummary';
 import { HealthChecklist } from '../components/HealthChecklist';
 import { LanguageBreakdown } from '../components/LanguageBreakdown';
 import { SuggestionsList } from '../components/SuggestionsList';
+import { SettingsModal } from '../components/SettingsModal';
+import { RecentScans } from '../components/RecentScans';
 
 import { parseGitHubUrl } from '../utils/parseGitHubUrl';
 import { fetchRepositoryData } from '../services/githubApi';
@@ -21,6 +23,7 @@ import {
 } from '../utils/formatters';
 import type { RepositoryData } from '../types/github';
 import type { HealthScoreResult } from '../types/health';
+import { getHistory, addToHistory, clearHistory, type ScanHistoryItem } from '../utils/history';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +33,12 @@ function App() {
   const [mode, setMode] = useState<'single' | 'compare'>('single');
   const [copiedReport, setCopiedReport] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [history, setHistory] = useState<ScanHistoryItem[]>([]);
+
+  useEffect(() => {
+    setHistory(getHistory());
+  }, []);
 
   const handleSearch = async (urls: string[]) => {
     // Validate URLs
@@ -56,6 +65,16 @@ function App() {
       
       setReposData(fetchedData);
       setHealthResults(scores);
+      
+      const newMode = urls.length > 1 ? 'compare' : 'single';
+      addToHistory({
+        id: urls.join(','),
+        mode: newMode as 'single' | 'compare',
+        urls,
+        repoNames: fetchedData.map(d => d.repo.full_name),
+        grade: scores[0].grade
+      });
+      setHistory(getHistory());
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -141,7 +160,8 @@ function App() {
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
-      <Header />
+      <Header onOpenSettings={() => setIsSettingsOpen(true)} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <main style={{ flex: 1, width: '100%' }}>
         {/* Hero / search */}
@@ -149,9 +169,18 @@ function App() {
           <div
             style={{
               background: 'radial-gradient(ellipse 70% 40% at 50% 0%, #05966922 0%, transparent 70%)',
+              paddingBottom: 40,
             }}
           >
             <RepoSearchForm onSearch={handleSearch} isLoading={isLoading} />
+            <RecentScans
+              history={history}
+              onSelect={handleSearch}
+              onClear={() => {
+                clearHistory();
+                setHistory([]);
+              }}
+            />
           </div>
         )}
 

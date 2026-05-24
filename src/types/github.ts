@@ -56,4 +56,6 @@ export interface RepositoryData {
   languages: GitHubLanguages;
   hasReadme: boolean;
   hasWorkflows: boolean;
+  hasContributing: boolean;
+  hasSecurity: boolean;
 }
