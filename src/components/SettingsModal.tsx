@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Key, ExternalLink } from 'lucide-react';
 
 interface SettingsModalProps {
@@ -7,16 +7,8 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(() => localStorage.getItem('github_token') || '');
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      const storedToken = localStorage.getItem('github_token');
-      if (storedToken) setToken(storedToken);
-      setSaved(false);
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 

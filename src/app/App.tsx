@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { RepoSearchForm } from '../components/RepoSearchForm';
@@ -34,11 +34,7 @@ function App() {
   const [copiedReport, setCopiedReport] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [history, setHistory] = useState<ScanHistoryItem[]>([]);
-
-  useEffect(() => {
-    setHistory(getHistory());
-  }, []);
+  const [history, setHistory] = useState<ScanHistoryItem[]>(() => getHistory());
 
   const handleSearch = async (urls: string[]) => {
     // Validate URLs
@@ -161,7 +157,7 @@ function App() {
       }}
     >
       <Header onOpenSettings={() => setIsSettingsOpen(true)} />
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
 
       <main style={{ flex: 1, width: '100%' }}>
         {/* Hero / search */}
