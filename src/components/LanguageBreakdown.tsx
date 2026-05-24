@@ -4,7 +4,7 @@ interface LanguageBreakdownProps {
   languages: GitHubLanguages;
 }
 
-// More curated, distinct colors than generic Tailwind
+// Custom colors for programming languages
 const LANG_COLORS: Record<string, string> = {
   TypeScript: '#3178c6',
   JavaScript: '#f7df1e',

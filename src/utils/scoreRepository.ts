@@ -6,7 +6,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
   const suggestions: string[] = [];
   let score = 0;
 
-  // 1. README present: 15 points
+  // Validate README presence
   if (data.hasReadme) {
     score += 15;
     criteria.push({
@@ -29,7 +29,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Add a README with installation and usage instructions.');
   }
 
-  // 2. License detected: 15 points
+  // Open-source license verification
   if (data.repo.license) {
     score += 15;
     criteria.push({
@@ -52,7 +52,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Add an open-source license such as MIT, Apache-2.0, or GPL.');
   }
 
-  // 3. Recent activity: 15 points
+  // Commit/push activity metrics
   let activityPoints = 0;
   let activityExplanation = 'No recent activity detected.';
   
@@ -82,7 +82,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     explanation: activityExplanation
   });
 
-  // 4. Description and/or topics present: 10 points
+  // Description and topics check
   const hasDescOrTopics = !!data.repo.description || (data.repo.topics && data.repo.topics.length > 0);
   if (hasDescOrTopics) {
     score += 10;
@@ -106,7 +106,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Add repository description and topics so others can discover the project.');
   }
 
-  // 5. Issues enabled: 10 points
+  // Issue tracking configuration
   if (data.repo.has_issues) {
     score += 10;
     criteria.push({
@@ -129,7 +129,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Enable issues to allow users to report bugs or request features.');
   }
 
-  // 6. Language data present: 10 points
+  // Language breakdown presence
   const hasLanguages = Object.keys(data.languages).length > 0;
   if (hasLanguages) {
     score += 10;
@@ -153,7 +153,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Add language-specific setup instructions.');
   }
 
-  // 7. GitHub Actions workflow detected: 10 points
+  // CI/CD workflows check
   if (data.hasWorkflows) {
     score += 10;
     criteria.push({
@@ -176,7 +176,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Consider setting up GitHub Actions for tests or linting.');
   }
 
-  // 8. Repository has useful metadata: 5 points
+  // Metadata & community engagement metrics
   const hasUsefulMetadata = !!data.repo.homepage || data.repo.stargazers_count > 0 || data.repo.forks_count > 0;
   if (hasUsefulMetadata) {
     score += 5;
@@ -199,7 +199,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     });
   }
 
-  // 9. Contribution Guidelines: 5 points
+  // Contributing guidelines check
   if (data.hasContributing) {
     score += 5;
     criteria.push({
@@ -222,7 +222,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Add a CONTRIBUTING.md file to help new developers get started.');
   }
 
-  // 10. Security Policy: 5 points
+  // Security policy check
   if (data.hasSecurity) {
     score += 5;
     criteria.push({
@@ -245,7 +245,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     suggestions.push('Add a SECURITY.md file detailing how to report vulnerabilities.');
   }
 
-  // Calculate grade
+  // Grade classification
   let grade: HealthScoreResult['grade'] = 'Needs Work';
   if (score >= 85) {
     grade = 'Excellent';
@@ -255,7 +255,7 @@ export function scoreRepository(data: RepositoryData): HealthScoreResult {
     grade = 'Fair';
   }
 
-  // Penalize archived repos
+  // Archived status penalty
   if (data.repo.archived) {
     suggestions.unshift('This repository is archived and read-only. Consider unarchiving it or creating a new maintained fork.');
     grade = 'Needs Work';

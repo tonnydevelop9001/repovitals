@@ -2,12 +2,12 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } | n
   try {
     let cleanUrl = url.trim();
 
-    // Remove trailing slashes
+    // strip trailing slashes
     while (cleanUrl.endsWith('/')) {
       cleanUrl = cleanUrl.slice(0, -1);
     }
 
-    // Check if it's already a full GitHub URL or starts with github.com
+    // match full github.com urls
     const githubRegex = /^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/]+)\/([^/]+)/i;
     const match = cleanUrl.match(githubRegex);
     if (match) {
@@ -18,12 +18,12 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } | n
       return { owner: match[1], repo };
     }
 
-    // If it's a non-GitHub URL with a protocol, reject it
+    // ignore non-github protocol links
     if (/^https?:\/\//i.test(cleanUrl)) {
       return null;
     }
 
-    // Otherwise, check if it's in owner/repo format
+    // fallback to owner/repo string format
     const parts = cleanUrl.split('/').filter(Boolean);
     if (parts.length >= 2) {
       const owner = parts[0];
@@ -32,7 +32,7 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } | n
         repo = repo.slice(0, -4);
       }
       
-      // Basic validation for owner and repo names to avoid random text
+      // filter out invalid characters in repo names
       const nameRegex = /^[a-zA-Z0-9-_.]+$/;
       if (nameRegex.test(owner) && nameRegex.test(repo)) {
         return { owner, repo };

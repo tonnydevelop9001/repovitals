@@ -1,10 +1,10 @@
 export interface ScanHistoryItem {
-  id: string; // URL or combination of URLs
+  id: string; // Unique scan key
   mode: 'single' | 'compare';
   urls: string[];
   repoNames: string[];
   timestamp: number;
-  grade: string; // for single, the grade; for compare, maybe the winner's grade or just 'N/A'
+  grade: string; // Overall health grade
 }
 
 const HISTORY_KEY = 'repovitals_history';
@@ -23,11 +23,11 @@ export function getHistory(): ScanHistoryItem[] {
 export function addToHistory(item: Omit<ScanHistoryItem, 'timestamp'>): void {
   try {
     const history = getHistory();
-    // Remove if already exists to move to top
+    // Bring existing item to top of history
     const filtered = history.filter(h => h.id !== item.id);
     filtered.unshift({ ...item, timestamp: Date.now() });
     
-    // Keep only latest MAX_HISTORY
+    // Enforce scan history size limit
     const trimmed = filtered.slice(0, MAX_HISTORY);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
   } catch (err) {

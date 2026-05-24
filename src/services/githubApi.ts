@@ -48,11 +48,11 @@ async function fetchWithHandling(url: string, options: RequestInit = {}): Promis
 
 export async function fetchRepositoryData(owner: string, repo: string): Promise<RepositoryData> {
   try {
-    // 1. Fetch main repo data
+    // Get repository details
     const repoResponse = await fetchWithHandling(`${API_BASE}/repos/${owner}/${repo}`);
     const repoData: GitHubRepository = await repoResponse.json();
 
-    // 2. Fetch languages
+    // Get language statistics
     let languages: GitHubLanguages = {};
     try {
       const langResponse = await fetchWithHandling(`${API_BASE}/repos/${owner}/${repo}/languages`);
@@ -61,7 +61,7 @@ export async function fetchRepositoryData(owner: string, repo: string): Promise<
       console.warn('Failed to fetch languages', e);
     }
 
-    // 3. Check for README
+    // Check if README exists
     let hasReadme = false;
     try {
       await fetchWithHandling(`${API_BASE}/repos/${owner}/${repo}/readme`);
@@ -72,7 +72,7 @@ export async function fetchRepositoryData(owner: string, repo: string): Promise<
       }
     }
 
-    // 4. Check for workflows
+    // Check if GitHub workflows are configured
     let hasWorkflows = false;
     try {
       const workflowsResponse = await fetchWithHandling(`${API_BASE}/repos/${owner}/${repo}/contents/.github/workflows`);
@@ -84,7 +84,7 @@ export async function fetchRepositoryData(owner: string, repo: string): Promise<
       }
     }
 
-    // 5. Check for CONTRIBUTING.md
+    // Check if contributing guide is present
     let hasContributing = false;
     try {
       await fetchWithHandling(`${API_BASE}/repos/${owner}/${repo}/contents/CONTRIBUTING.md`);
@@ -93,7 +93,7 @@ export async function fetchRepositoryData(owner: string, repo: string): Promise<
       if (!(e instanceof NotFoundError)) console.warn('Failed to fetch CONTRIBUTING.md', e);
     }
 
-    // 6. Check for SECURITY.md
+    // Check if security policy is present
     let hasSecurity = false;
     try {
       await fetchWithHandling(`${API_BASE}/repos/${owner}/${repo}/contents/SECURITY.md`);
