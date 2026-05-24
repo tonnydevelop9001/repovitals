@@ -12,20 +12,6 @@ function getScoreColor(score: number) {
   return '#ef4444';
 }
 
-function getGradeName(grade: string) {
-  const map: Record<string, string> = {
-    'A+': 'Excellent',
-    A: 'Great',
-    'B+': 'Good',
-    B: 'Good',
-    'C+': 'Fair',
-    C: 'Fair',
-    D: 'Poor',
-    F: 'Critical',
-  };
-  return map[grade] ?? grade;
-}
-
 export function ScoreCard({ result }: ScoreCardProps) {
   const { score, grade } = result;
   const color = getScoreColor(score);
@@ -166,7 +152,7 @@ export function ScoreCard({ result }: ScoreCardProps) {
             textTransform: 'uppercase',
           }}
         >
-          {grade} — {getGradeName(grade)}
+          {grade}
         </span>
       </div>
     </div>

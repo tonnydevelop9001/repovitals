@@ -2,34 +2,46 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } | n
   try {
     let cleanUrl = url.trim();
 
-    // Ensure it has a protocol to parse nicely, unless it's just github.com/...
-    if (!/^https?:\/\//i.test(cleanUrl)) {
-      cleanUrl = `https://${cleanUrl}`;
+    // Remove trailing slashes
+    while (cleanUrl.endsWith('/')) {
+      cleanUrl = cleanUrl.slice(0, -1);
     }
 
-    const parsedUrl = new URL(cleanUrl);
+    // Check if it's already a full GitHub URL or starts with github.com
+    const githubRegex = /^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/]+)\/([^/]+)/i;
+    const match = cleanUrl.match(githubRegex);
+    if (match) {
+      let repo = match[2];
+      if (repo.endsWith('.git')) {
+        repo = repo.slice(0, -4);
+      }
+      return { owner: match[1], repo };
+    }
 
-    // Only allow github.com or www.github.com
-    if (parsedUrl.hostname !== 'github.com' && parsedUrl.hostname !== 'www.github.com') {
+    // If it's a non-GitHub URL with a protocol, reject it
+    if (/^https?:\/\//i.test(cleanUrl)) {
       return null;
     }
 
-    const parts = parsedUrl.pathname.split('/').filter(Boolean);
-
-    if (parts.length < 2) {
-      return null;
+    // Otherwise, check if it's in owner/repo format
+    const parts = cleanUrl.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      const owner = parts[0];
+      let repo = parts[1];
+      if (repo.endsWith('.git')) {
+        repo = repo.slice(0, -4);
+      }
+      
+      // Basic validation for owner and repo names to avoid random text
+      const nameRegex = /^[a-zA-Z0-9-_.]+$/;
+      if (nameRegex.test(owner) && nameRegex.test(repo)) {
+        return { owner, repo };
+      }
     }
 
-    const owner = parts[0];
-    let repo = parts[1];
-
-    // Remove .git suffix if present
-    if (repo.endsWith('.git')) {
-      repo = repo.slice(0, -4);
-    }
-
-    return { owner, repo };
+    return null;
   } catch {
     return null;
   }
 }
+

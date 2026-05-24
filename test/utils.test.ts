@@ -17,6 +17,19 @@ describe('parseGitHubUrl', () => {
     expect(parseGitHubUrl('https://github.com/facebook/react.git')).toEqual({ owner: 'facebook', repo: 'react' });
   });
 
+  it('parses relative owner/repo path', () => {
+    expect(parseGitHubUrl('facebook/react')).toEqual({ owner: 'facebook', repo: 'react' });
+  });
+
+  it('parses relative owner/repo path with .git suffix', () => {
+    expect(parseGitHubUrl('facebook/react.git')).toEqual({ owner: 'facebook', repo: 'react' });
+  });
+
+  it('handles trailing slash cleanly', () => {
+    expect(parseGitHubUrl('https://github.com/facebook/react/')).toEqual({ owner: 'facebook', repo: 'react' });
+    expect(parseGitHubUrl('facebook/react/')).toEqual({ owner: 'facebook', repo: 'react' });
+  });
+
   it('rejects non-github URLs', () => {
     expect(parseGitHubUrl('https://gitlab.com/owner/repo')).toBeNull();
   });
