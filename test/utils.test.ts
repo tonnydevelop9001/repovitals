@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseGitHubUrl } from '../src/utils/parseGitHubUrl';
-import { formatNumber } from '../src/utils/formatters';
+import { formatNumber, generateSingleMarkdownReport, generateCompareMarkdownReport } from '../src/utils/formatters';
 import { scoreRepository } from '../src/utils/scoreRepository';
 import { mockRepoData } from './fixtures';
 
@@ -76,3 +76,22 @@ describe('scoreRepository', () => {
     expect(result.suggestions[0]).toContain('archived');
   });
 });
+
+describe('markdown report generators', () => {
+  it('generates a single repository markdown report', () => {
+    const result = scoreRepository(mockRepoData);
+    const report = generateSingleMarkdownReport(mockRepoData, result);
+    expect(report).toContain('### 🩺 RepoVitals Health Report: [vercel/next.js]');
+    expect(report).toContain('**Health Score:** `100/100` (Excellent)');
+    expect(report).toContain('| **README File** | ✅ Passed | `20/20` |');
+  });
+
+  it('generates a comparison markdown report', () => {
+    const result = scoreRepository(mockRepoData);
+    const report = generateCompareMarkdownReport([mockRepoData, mockRepoData], [result, result]);
+    expect(report).toContain('### 🩺 RepoVitals Health Comparison');
+    expect(report).toContain('| Metric | [vercel/next.js]');
+    expect(report).toContain('| **Health Score** | **`100/100`** (Excellent) | **`100/100`** (Excellent) |');
+  });
+});
+

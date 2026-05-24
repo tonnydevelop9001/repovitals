@@ -3,6 +3,11 @@ import { formatNumber, formatRelativeTime } from '../utils/formatters';
 
 interface RepoSummaryProps {
   repo: GitHubRepository;
+  winningMetrics?: {
+    stars?: boolean;
+    forks?: boolean;
+    activity?: boolean;
+  };
 }
 
 const statStyle = {
@@ -15,24 +20,25 @@ const statStyle = {
   gap: 4,
 };
 
-export function RepoSummary({ repo }: RepoSummaryProps) {
+export function RepoSummary({ repo, winningMetrics }: RepoSummaryProps) {
   const openIssues = ('open_issues_count' in repo)
     ? (repo as unknown as { open_issues_count: number }).open_issues_count
     : 0;
 
   const stats = [
-    { label: 'Stars', value: formatNumber(repo.stargazers_count), emoji: '⭐' },
-    { label: 'Forks', value: formatNumber(repo.forks_count), emoji: '🍴' },
-    { label: 'Open Issues', value: formatNumber(openIssues), emoji: '🐛' },
-    { label: 'License', value: repo.license?.spdx_id || 'None', emoji: '📄' },
-    { label: 'Language', value: repo.language || 'N/A', emoji: '💻' },
-    { label: 'Branch', value: repo.default_branch, emoji: '🌿' },
+    { key: 'stars', label: 'Stars', value: formatNumber(repo.stargazers_count), emoji: '⭐' },
+    { key: 'forks', label: 'Forks', value: formatNumber(repo.forks_count), emoji: '🍴' },
+    { key: 'issues', label: 'Open Issues', value: formatNumber(openIssues), emoji: '🐛' },
+    { key: 'license', label: 'License', value: repo.license?.spdx_id || 'None', emoji: '📄' },
+    { key: 'language', label: 'Language', value: repo.language || 'N/A', emoji: '💻' },
+    { key: 'branch', label: 'Branch', value: repo.default_branch, emoji: '🌿' },
     {
+      key: 'activity',
       label: 'Last push',
       value: repo.pushed_at ? formatRelativeTime(repo.pushed_at) : 'Unknown',
       emoji: '🕐',
     },
-    { label: 'Archived', value: repo.archived ? 'Yes' : 'No', emoji: '📦' },
+    { key: 'archived', label: 'Archived', value: repo.archived ? 'Yes' : 'No', emoji: '📦' },
   ];
 
   return (
@@ -84,26 +90,51 @@ export function RepoSummary({ repo }: RepoSummaryProps) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {stats.map(s => (
-          <div key={s.label} style={statStyle}>
-            <span style={{ fontSize: 11, color: '#555', fontWeight: 500 }}>
-              {s.emoji} {s.label}
-            </span>
-            <span
+        {stats.map(s => {
+          const isWinner = winningMetrics && s.key && winningMetrics[s.key as keyof typeof winningMetrics];
+          return (
+            <div
+              key={s.label}
               style={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: '#d4d4d4',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                ...statStyle,
+                border: isWinner ? '1px dashed #05966960' : '1px solid #222',
+                background: isWinner ? 'radial-gradient(circle at 100% 100%, #05966908, #1a1a1a)' : '#1a1a1a',
               }}
-              title={s.value}
             >
-              {s.value}
-            </span>
-          </div>
-        ))}
+              <span style={{ fontSize: 11, color: '#555', fontWeight: 500 }}>
+                {s.emoji} {s.label}
+              </span>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: isWinner ? '#34d399' : '#d4d4d4',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+                title={s.value}
+              >
+                {s.value}
+                {isWinner && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: '#34d399',
+                      fontWeight: 700,
+                    }}
+                    title="Comparison leader for this metric"
+                  >
+                    🏆
+                  </span>
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

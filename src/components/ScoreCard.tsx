@@ -3,6 +3,7 @@ import type { HealthScoreResult } from '../types/health';
 
 interface ScoreCardProps {
   result: HealthScoreResult;
+  isWinner?: boolean;
 }
 
 function getScoreColor(score: number) {
@@ -12,7 +13,7 @@ function getScoreColor(score: number) {
   return '#ef4444';
 }
 
-export function ScoreCard({ result }: ScoreCardProps) {
+export function ScoreCard({ result, isWinner }: ScoreCardProps) {
   const { score, grade } = result;
   const color = getScoreColor(score);
   const radius = 52;
@@ -65,6 +66,31 @@ export function ScoreCard({ result }: ScoreCardProps) {
           pointerEvents: 'none',
         }}
       />
+
+      {isWinner && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            color: '#000',
+            fontSize: 9,
+            fontWeight: 800,
+            padding: '3px 8px',
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 3,
+            boxShadow: '0 0 12px #f59e0b40',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            zIndex: 10,
+          }}
+        >
+          👑 Leader
+        </div>
+      )}
 
       <p
         style={{

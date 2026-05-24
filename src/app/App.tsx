@@ -13,6 +13,7 @@ import { SuggestionsList } from '../components/SuggestionsList';
 import { parseGitHubUrl } from '../utils/parseGitHubUrl';
 import { fetchRepositoryData } from '../services/githubApi';
 import { scoreRepository } from '../utils/scoreRepository';
+import { generateSingleMarkdownReport, generateCompareMarkdownReport } from '../utils/formatters';
 import type { RepositoryData } from '../types/github';
 import type { HealthScoreResult } from '../types/health';
 
@@ -22,6 +23,7 @@ function App() {
   const [reposData, setReposData] = useState<RepositoryData[]>([]);
   const [healthResults, setHealthResults] = useState<HealthScoreResult[]>([]);
   const [mode, setMode] = useState<'single' | 'compare'>('single');
+  const [copiedReport, setCopiedReport] = useState(false);
 
   const handleSearch = async (urls: string[]) => {
     // Validate URLs
@@ -35,6 +37,7 @@ function App() {
     setError(null);
     setReposData([]);
     setHealthResults([]);
+    setCopiedReport(false);
     setMode(urls.length > 1 ? 'compare' : 'single');
 
     try {
@@ -62,6 +65,23 @@ function App() {
     setReposData([]);
     setHealthResults([]);
     setError(null);
+    setCopiedReport(false);
+  };
+
+  const handleCopyReport = async () => {
+    if (reposData.length === 0 || healthResults.length === 0) return;
+
+    const markdown = mode === 'single'
+      ? generateSingleMarkdownReport(reposData[0], healthResults[0])
+      : generateCompareMarkdownReport(reposData, healthResults);
+
+    try {
+      await navigator.clipboard.writeText(markdown);
+      setCopiedReport(true);
+      setTimeout(() => setCopiedReport(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy report to clipboard', err);
+    }
   };
 
   const renderSingleRepo = (repoData: RepositoryData, healthResult: HealthScoreResult) => (
@@ -159,33 +179,82 @@ function App() {
               <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: '#fff' }}>
                 {mode === 'single' ? 'Analysis Result' : 'Comparison Results'}
               </h2>
-              <button
-                id="new-search-btn"
-                onClick={handleReset}
-                style={{
-                  background: '#1a1a1a',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: 10,
-                  color: '#888',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  padding: '8px 16px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  fontFamily: 'Inter, sans-serif',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.color = '#e8e8e8';
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#3a3a3a';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.color = '#888';
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#2a2a2a';
-                }}
-              >
-                ← New search
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  onClick={handleCopyReport}
+                  style={{
+                    background: copiedReport ? '#05966918' : '#1a1a1a',
+                    border: `1px solid ${copiedReport ? '#05966960' : '#2a2a2a'}`,
+                    borderRadius: 10,
+                    color: copiedReport ? '#34d399' : '#888',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    fontFamily: 'Inter, sans-serif',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                  onMouseEnter={e => {
+                    if (!copiedReport) {
+                      (e.currentTarget as HTMLButtonElement).style.color = '#e8e8e8';
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = '#3a3a3a';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!copiedReport) {
+                      (e.currentTarget as HTMLButtonElement).style.color = '#888';
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = '#2a2a2a';
+                    }
+                  }}
+                >
+                  {copiedReport ? (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Copied report!
+                    </>
+                  ) : (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      Copy report
+                    </>
+                  )}
+                </button>
+                <button
+                  id="new-search-btn"
+                  onClick={handleReset}
+                  style={{
+                    background: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: 10,
+                    color: '#888',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    fontFamily: 'Inter, sans-serif',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.color = '#e8e8e8';
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = '#3a3a3a';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.color = '#888';
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = '#2a2a2a';
+                  }}
+                >
+                  ← New search
+                </button>
+              </div>
             </div>
 
             {mode === 'single' ? (
@@ -223,48 +292,67 @@ function App() {
               </div>
             ) : (
               // Compare Mode View
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(400px, 100%), 1fr))',
-                  gap: 24,
-                }}
-              >
-                {reposData.map((repoData, index) => (
-                  <div key={repoData.repo.full_name} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {/* Repo Header inside column */}
-                    <div
-                      style={{
-                        background: '#141414',
-                        border: '1px solid #222',
-                        borderRadius: 16,
-                        padding: '20px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                      }}
-                    >
-                      <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#f0f0f0' }}>
-                        {repoData.repo.full_name}
-                      </h2>
-                      {repoData.repo.description && (
-                        <p style={{ fontSize: 12, color: '#666', margin: '8px 0 0', lineHeight: 1.4 }}>
-                          {repoData.repo.description}
-                        </p>
-                      )}
-                    </div>
-                    {/* Reuse single view layout but constrained within the column */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      <ScoreCard result={healthResults[index]} />
-                      <RepoSummary repo={repoData.repo} />
-                      <LanguageBreakdown languages={repoData.languages} />
-                      <SuggestionsList suggestions={healthResults[index].suggestions} />
-                      <HealthChecklist criteria={healthResults[index].criteria} />
-                    </div>
+              (() => {
+                const scoreWinnerIndex = healthResults[0].score > healthResults[1].score ? 0 : healthResults[1].score > healthResults[0].score ? 1 : -1;
+                const starsWinnerIndex = reposData[0].repo.stargazers_count > reposData[1].repo.stargazers_count ? 0 : reposData[1].repo.stargazers_count > reposData[0].repo.stargazers_count ? 1 : -1;
+                const forksWinnerIndex = reposData[0].repo.forks_count > reposData[1].repo.forks_count ? 0 : reposData[1].repo.forks_count > reposData[0].repo.forks_count ? 1 : -1;
+
+                const date0 = reposData[0].repo.pushed_at ? new Date(reposData[0].repo.pushed_at).getTime() : 0;
+                const date1 = reposData[1].repo.pushed_at ? new Date(reposData[1].repo.pushed_at).getTime() : 0;
+                const activityWinnerIndex = date0 > date1 ? 0 : date1 > date0 ? 1 : -1;
+
+                return (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(400px, 100%), 1fr))',
+                      gap: 24,
+                    }}
+                  >
+                    {reposData.map((repoData, index) => (
+                      <div key={repoData.repo.full_name} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {/* Repo Header inside column */}
+                        <div
+                          style={{
+                            background: '#141414',
+                            border: '1px solid #222',
+                            borderRadius: 16,
+                            padding: '20px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#f0f0f0' }}>
+                            {repoData.repo.full_name}
+                          </h2>
+                          {repoData.repo.description && (
+                            <p style={{ fontSize: 12, color: '#666', margin: '8px 0 0', lineHeight: 1.4 }}>
+                              {repoData.repo.description}
+                            </p>
+                          )}
+                        </div>
+                        {/* Reuse single view layout but constrained within the column */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                          <ScoreCard result={healthResults[index]} isWinner={index === scoreWinnerIndex} />
+                          <RepoSummary
+                            repo={repoData.repo}
+                            winningMetrics={{
+                              stars: index === starsWinnerIndex,
+                              forks: index === forksWinnerIndex,
+                              activity: index === activityWinnerIndex,
+                            }}
+                          />
+                          <LanguageBreakdown languages={repoData.languages} />
+                          <SuggestionsList suggestions={healthResults[index].suggestions} />
+                          <HealthChecklist criteria={healthResults[index].criteria} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()
             )}
 
             {/* About the score note */}
