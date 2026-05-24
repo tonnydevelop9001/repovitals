@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { parseGitHubUrl } from '../src/utils/parseGitHubUrl';
-import { formatNumber, generateSingleMarkdownReport, generateCompareMarkdownReport } from '../src/utils/formatters';
+import {
+  formatNumber,
+  generateSingleMarkdownReport,
+  generateCompareMarkdownReport,
+  generateAIPrompt,
+  generateCompareAIPrompt
+} from '../src/utils/formatters';
 import { scoreRepository } from '../src/utils/scoreRepository';
 import { mockRepoData } from './fixtures';
 
@@ -92,6 +98,22 @@ describe('markdown report generators', () => {
     expect(report).toContain('### 🩺 RepoVitals Health Comparison');
     expect(report).toContain('| Metric | [vercel/next.js]');
     expect(report).toContain('| **Health Score** | **`100/100`** (Excellent) | **`100/100`** (Excellent) |');
+  });
+
+  it('generates an AI audit prompt for single repository', () => {
+    const result = scoreRepository(mockRepoData);
+    const prompt = generateAIPrompt(mockRepoData, result);
+    expect(prompt).toContain('I am auditing the GitHub repository "vercel/next.js"');
+    expect(prompt).toContain('**Primary Stack/Languages**: TypeScript, JavaScript, CSS');
+    expect(prompt).toContain('**Health Score**: 100/100');
+  });
+
+  it('generates an AI audit prompt for comparison', () => {
+    const result = scoreRepository(mockRepoData);
+    const prompt = generateCompareAIPrompt([mockRepoData, mockRepoData], [result, result]);
+    expect(prompt).toContain('I am comparing two GitHub repositories to decide which one is better suited');
+    expect(prompt).toContain('### Repository 1: vercel/next.js');
+    expect(prompt).toContain('### Repository 2: vercel/next.js');
   });
 });
 

@@ -13,7 +13,12 @@ import { SuggestionsList } from '../components/SuggestionsList';
 import { parseGitHubUrl } from '../utils/parseGitHubUrl';
 import { fetchRepositoryData } from '../services/githubApi';
 import { scoreRepository } from '../utils/scoreRepository';
-import { generateSingleMarkdownReport, generateCompareMarkdownReport } from '../utils/formatters';
+import {
+  generateSingleMarkdownReport,
+  generateCompareMarkdownReport,
+  generateAIPrompt,
+  generateCompareAIPrompt
+} from '../utils/formatters';
 import type { RepositoryData } from '../types/github';
 import type { HealthScoreResult } from '../types/health';
 
@@ -24,6 +29,7 @@ function App() {
   const [healthResults, setHealthResults] = useState<HealthScoreResult[]>([]);
   const [mode, setMode] = useState<'single' | 'compare'>('single');
   const [copiedReport, setCopiedReport] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const handleSearch = async (urls: string[]) => {
     // Validate URLs
@@ -66,6 +72,7 @@ function App() {
     setHealthResults([]);
     setError(null);
     setCopiedReport(false);
+    setCopiedPrompt(false);
   };
 
   const handleCopyReport = async () => {
@@ -81,6 +88,22 @@ function App() {
       setTimeout(() => setCopiedReport(false), 2000);
     } catch (err) {
       console.error('Failed to copy report to clipboard', err);
+    }
+  };
+
+  const handleCopyPrompt = async () => {
+    if (reposData.length === 0 || healthResults.length === 0) return;
+
+    const promptText = mode === 'single'
+      ? generateAIPrompt(reposData[0], healthResults[0])
+      : generateCompareAIPrompt(reposData, healthResults);
+
+    try {
+      await navigator.clipboard.writeText(promptText);
+      setCopiedPrompt(true);
+      setTimeout(() => setCopiedPrompt(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy prompt to clipboard', err);
     }
   };
 
@@ -173,13 +196,60 @@ function App() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: 28,
+                marginBottom: 20,
               }}
             >
               <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: '#fff' }}>
                 {mode === 'single' ? 'Analysis Result' : 'Comparison Results'}
               </h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  onClick={handleCopyPrompt}
+                  style={{
+                    background: copiedPrompt ? '#05966918' : '#1a1a1a',
+                    border: `1px solid ${copiedPrompt ? '#05966960' : '#2a2a2a'}`,
+                    borderRadius: 10,
+                    color: copiedPrompt ? '#34d399' : '#888',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    fontFamily: 'Inter, sans-serif',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                  title="Copies a prompt optimized for Claude, ChatGPT & more"
+                  onMouseEnter={e => {
+                    if (!copiedPrompt) {
+                      (e.currentTarget as HTMLButtonElement).style.color = '#e8e8e8';
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = '#3a3a3a';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!copiedPrompt) {
+                      (e.currentTarget as HTMLButtonElement).style.color = '#888';
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = '#2a2a2a';
+                    }
+                  }}
+                >
+                  {copiedPrompt ? (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Copied prompt!
+                    </>
+                  ) : (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" />
+                      </svg>
+                      AI Audit Prompt
+                    </>
+                  )}
+                </button>
                 <button
                   onClick={handleCopyReport}
                   style={{
@@ -256,6 +326,10 @@ function App() {
                 </button>
               </div>
             </div>
+
+            <p style={{ fontSize: 12, color: '#666', marginTop: -12, marginBottom: 32 }}>
+              💡 Use the <b>AI Audit Prompt</b> button to copy a custom-tailored prompt for auditing this codebase in <b>Claude, ChatGPT, Gemini</b>, and more.
+            </p>
 
             {mode === 'single' ? (
               // Single Mode View

@@ -105,3 +105,92 @@ export function generateCompareMarkdownReport(
   return lines.join('\n');
 }
 
+export function generateAIPrompt(
+  repoData: RepositoryData,
+  healthResult: HealthScoreResult
+): string {
+  const { repo } = repoData;
+  const languagesStr = Object.entries(repoData.languages)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name]) => name)
+    .join(', ');
+
+  const suggestionsStr = healthResult.suggestions.length > 0
+    ? healthResult.suggestions.map(s => `- ${s}`).join('\n')
+    : 'No major issues found.';
+
+  const prompt = [
+    `I am auditing the GitHub repository "${repo.full_name}" and want a deep architectural, maintenance, and suitability review. Here is the metadata and health checks collected:`,
+    ``,
+    `- **Repository**: ${repo.full_name} (${repo.html_url})`,
+    `- **Description**: ${repo.description || 'No description provided.'}`,
+    `- **Primary Stack/Languages**: ${languagesStr || 'N/A'}`,
+    `- **Health Score**: ${healthResult.score}/100 (${healthResult.grade})`,
+    `- **README**: ${repoData.hasReadme ? 'Present' : 'Missing'}`,
+    `- **License**: ${repo.license?.name || 'None detected'}`,
+    `- **Workflows (CI/CD)**: ${repoData.hasWorkflows ? 'Configured' : 'None detected'}`,
+    `- **Archived**: ${repo.archived ? 'Yes' : 'No'}`,
+    `- **Stars**: ${repo.stargazers_count.toLocaleString()}`,
+    `- **Forks**: ${repo.forks_count.toLocaleString()}`,
+    `- **Default Branch**: ${repo.default_branch}`,
+    `- **Last Push**: ${repo.pushed_at ? new Date(repo.pushed_at).toDateString() : 'Unknown'}`,
+    ``,
+    `**Heuristic suggestions flagged by RepoVitals:**`,
+    suggestionsStr,
+    ``,
+    `Based on this information, please provide a comprehensive audit covering:`,
+    `1. **Maintenance & Abandonment Risk**: Analyze the push activity, default branch setup, and archived state.`,
+    `2. **Licensing & Compliance**: Evaluate the open-source license and compliance risk.`,
+    `3. **Ecosystem & Community Health**: Assess stars, forks, and issues enablement to gauge developer community support.`,
+    `4. **CI/CD & Documentation**: Evaluate the maturity based on the README and workflow configurations.`,
+    `5. **Final Recommendation**: Provide a structured "Use / Use with Caution / Avoid" recommendation for production use.`
+  ].join('\n');
+
+  return prompt;
+}
+
+export function generateCompareAIPrompt(
+  reposData: RepositoryData[],
+  healthResults: HealthScoreResult[]
+): string {
+  const prompt = [
+    `I am comparing two GitHub repositories to decide which one is better suited for my project. Please write a comparative analysis based on the following metadata:`,
+    ``,
+    ...reposData.map((d, index) => {
+      const { repo } = d;
+      const res = healthResults[index];
+      const languagesStr = Object.entries(d.languages)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name]) => name)
+        .join(', ');
+      
+      const suggestionsStr = res.suggestions.length > 0
+        ? res.suggestions.map(s => `- ${s}`).join('\n')
+        : 'No major issues found.';
+
+      return [
+        `### Repository ${index + 1}: ${repo.full_name}`,
+        `- **URL**: ${repo.html_url}`,
+        `- **Description**: ${repo.description || 'No description'}`,
+        `- **Languages**: ${languagesStr || 'N/A'}`,
+        `- **Score**: ${res.score}/100 (${res.grade})`,
+        `- **License**: ${repo.license?.name || 'None'}`,
+        `- **CI/CD Configured**: ${d.hasWorkflows ? 'Yes' : 'No'}`,
+        `- **README**: ${d.hasReadme ? 'Present' : 'Missing'}`,
+        `- **Stars**: ${repo.stargazers_count.toLocaleString()}`,
+        `- **Forks**: ${repo.forks_count.toLocaleString()}`,
+        `- **Last Push**: ${repo.pushed_at ? new Date(repo.pushed_at).toDateString() : 'Unknown'}`,
+        `**Key issues identified:**`,
+        suggestionsStr,
+        ``
+      ].join('\n');
+    }),
+    `Based on this side-by-side data, please provide:`,
+    `1. A comparison of their maintenance health and activity.`,
+    `2. A comparison of their license compliance and documentation maturity.`,
+    `3. A final recommendation on which library to choose, listing pros and cons for each.`
+  ].join('\n');
+
+  return prompt;
+}
+
