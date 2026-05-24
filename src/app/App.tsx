@@ -19,26 +19,34 @@ import type { HealthScoreResult } from '../types/health';
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [repoData, setRepoData] = useState<RepositoryData | null>(null);
-  const [healthResult, setHealthResult] = useState<HealthScoreResult | null>(null);
+  const [reposData, setReposData] = useState<RepositoryData[]>([]);
+  const [healthResults, setHealthResults] = useState<HealthScoreResult[]>([]);
+  const [mode, setMode] = useState<'single' | 'compare'>('single');
 
-  const handleSearch = async (url: string) => {
-    const parsed = parseGitHubUrl(url);
-    if (!parsed) {
-      setError('Invalid GitHub URL. Please enter a valid repository URL (e.g., https://github.com/owner/repo).');
+  const handleSearch = async (urls: string[]) => {
+    // Validate URLs
+    const parsedUrls = urls.map(parseGitHubUrl);
+    if (parsedUrls.some(p => !p)) {
+      setError('Invalid GitHub URL provided. Please enter a valid repository URL (e.g., https://github.com/owner/repo).');
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    setRepoData(null);
-    setHealthResult(null);
+    setReposData([]);
+    setHealthResults([]);
+    setMode(urls.length > 1 ? 'compare' : 'single');
 
     try {
-      const data = await fetchRepositoryData(parsed.owner, parsed.repo);
-      const result = scoreRepository(data);
-      setRepoData(data);
-      setHealthResult(result);
+      // Fetch all concurrently
+      const fetchedData = await Promise.all(
+        parsedUrls.map(parsed => fetchRepositoryData(parsed!.owner, parsed!.repo))
+      );
+      
+      const scores = fetchedData.map(data => scoreRepository(data));
+      
+      setReposData(fetchedData);
+      setHealthResults(scores);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -51,10 +59,33 @@ function App() {
   };
 
   const handleReset = () => {
-    setRepoData(null);
-    setHealthResult(null);
+    setReposData([]);
+    setHealthResults([]);
     setError(null);
   };
+
+  const renderSingleRepo = (repoData: RepositoryData, healthResult: HealthScoreResult) => (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: 14,
+      }}
+    >
+      {/* Left column */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <ScoreCard result={healthResult} />
+        <RepoSummary repo={repoData.repo} />
+        <LanguageBreakdown languages={repoData.languages} />
+      </div>
+
+      {/* Right column */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <SuggestionsList suggestions={healthResult.suggestions} />
+        <HealthChecklist criteria={healthResult.criteria} />
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -71,7 +102,7 @@ function App() {
 
       <main style={{ flex: 1, width: '100%' }}>
         {/* Hero / search */}
-        {!repoData && !isLoading && (
+        {reposData.length === 0 && !isLoading && (
           <div
             style={{
               background: 'radial-gradient(ellipse 70% 40% at 50% 0%, #05966922 0%, transparent 70%)',
@@ -107,64 +138,27 @@ function App() {
           </div>
         )}
 
-        {repoData && healthResult && !isLoading && !error && (
+        {reposData.length > 0 && healthResults.length > 0 && !isLoading && !error && (
           <div
             style={{
-              maxWidth: 1100,
+              maxWidth: mode === 'compare' ? 1400 : 1100,
               margin: '0 auto',
               padding: '32px 24px 64px',
               animation: 'fadeUp 0.4s ease forwards',
             }}
           >
-            {/* Repo title bar */}
+            {/* Header section with Reset button */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: 16,
                 marginBottom: 28,
-                flexWrap: 'wrap',
               }}
             >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                  <h2
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 700,
-                      letterSpacing: '-0.03em',
-                      color: '#f0f0f0',
-                      margin: 0,
-                    }}
-                  >
-                    {repoData.repo.full_name}
-                  </h2>
-                  {repoData.repo.archived && (
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                        background: '#f59e0b18',
-                        border: '1px solid #f59e0b40',
-                        color: '#f59e0b',
-                        borderRadius: 99,
-                        padding: '2px 8px',
-                      }}
-                    >
-                      Archived
-                    </span>
-                  )}
-                </div>
-                {repoData.repo.description && (
-                  <p style={{ fontSize: 13, color: '#666', margin: '6px 0 0', maxWidth: 600, lineHeight: 1.5 }}>
-                    {repoData.repo.description}
-                  </p>
-                )}
-              </div>
-
+              <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: '#fff' }}>
+                {mode === 'single' ? 'Analysis Result' : 'Comparison Results'}
+              </h2>
               <button
                 id="new-search-btn"
                 onClick={handleReset}
@@ -194,27 +188,84 @@ function App() {
               </button>
             </div>
 
-            {/* Main grid */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: 14,
-              }}
-            >
-              {/* Left column */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <ScoreCard result={healthResult} />
-                <RepoSummary repo={repoData.repo} />
-                <LanguageBreakdown languages={repoData.languages} />
+            {mode === 'single' ? (
+              // Single Mode View
+              <div>
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#f0f0f0' }}>
+                      {reposData[0].repo.full_name}
+                    </h2>
+                    {reposData[0].repo.archived && (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          background: '#f59e0b18',
+                          border: '1px solid #f59e0b40',
+                          color: '#f59e0b',
+                          borderRadius: 99,
+                          padding: '2px 8px',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Archived
+                      </span>
+                    )}
+                  </div>
+                  {reposData[0].repo.description && (
+                    <p style={{ fontSize: 13, color: '#666', margin: '6px 0 0', maxWidth: 600 }}>
+                      {reposData[0].repo.description}
+                    </p>
+                  )}
+                </div>
+                {renderSingleRepo(reposData[0], healthResults[0])}
               </div>
-
-              {/* Right column */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <SuggestionsList suggestions={healthResult.suggestions} />
-                <HealthChecklist criteria={healthResult.criteria} />
+            ) : (
+              // Compare Mode View
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                  gap: 24,
+                }}
+              >
+                {reposData.map((repoData, index) => (
+                  <div key={repoData.repo.full_name} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Repo Header inside column */}
+                    <div
+                      style={{
+                        background: '#141414',
+                        border: '1px solid #222',
+                        borderRadius: 16,
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#f0f0f0' }}>
+                        {repoData.repo.full_name}
+                      </h2>
+                      {repoData.repo.description && (
+                        <p style={{ fontSize: 12, color: '#666', margin: '8px 0 0', lineHeight: 1.4 }}>
+                          {repoData.repo.description}
+                        </p>
+                      )}
+                    </div>
+                    {/* Reuse single view layout but constrained within the column */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      <ScoreCard result={healthResults[index]} />
+                      <RepoSummary repo={repoData.repo} />
+                      <LanguageBreakdown languages={repoData.languages} />
+                      <SuggestionsList suggestions={healthResults[index].suggestions} />
+                      <HealthChecklist criteria={healthResults[index].criteria} />
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
 
             {/* About the score note */}
             <div
