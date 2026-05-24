@@ -4,14 +4,53 @@ interface LanguageBreakdownProps {
   languages: GitHubLanguages;
 }
 
+// More curated, distinct colors than generic Tailwind
+const LANG_COLORS: Record<string, string> = {
+  TypeScript: '#3178c6',
+  JavaScript: '#f7df1e',
+  Python: '#3572A5',
+  Rust: '#dea584',
+  Go: '#00ADD8',
+  Java: '#b07219',
+  'C++': '#f34b7d',
+  C: '#555555',
+  Ruby: '#701516',
+  PHP: '#4F5D95',
+  Swift: '#F05138',
+  Kotlin: '#A97BFF',
+  CSS: '#563d7c',
+  HTML: '#e34c26',
+  Shell: '#89e051',
+  Vue: '#41B883',
+  Svelte: '#ff3e00',
+  Dart: '#00B4AB',
+  Scala: '#c22d40',
+  Elixir: '#6e4a7e',
+};
+
+function getLangColor(name: string, idx: number): string {
+  if (LANG_COLORS[name]) return LANG_COLORS[name];
+  const fallbacks = ['#6366f1', '#ec4899', '#14b8a6', '#8b5cf6', '#06b6d4', '#f59e0b'];
+  return fallbacks[idx % fallbacks.length];
+}
+
 export function LanguageBreakdown({ languages }: LanguageBreakdownProps) {
   const total = Object.values(languages).reduce((acc, val) => acc + val, 0);
-  
+
   if (total === 0) {
     return (
-      <div className="bg-card-bg border border-border-color rounded-2xl p-6 shadow-sm">
-        <h3 className="text-xl font-semibold text-text-main mb-4">Languages</h3>
-        <p className="text-text-muted text-sm">No language data available.</p>
+      <div
+        style={{
+          background: '#141414',
+          border: '1px solid #222',
+          borderRadius: 16,
+          padding: '20px',
+        }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#555', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          Languages
+        </span>
+        <p style={{ color: '#555', fontSize: 13, marginTop: 12 }}>No language data available.</p>
       </div>
     );
   }
@@ -20,37 +59,92 @@ export function LanguageBreakdown({ languages }: LanguageBreakdownProps) {
     .sort((a, b) => b[1] - a[1])
     .map(([name, bytes]) => ({
       name,
-      percentage: (bytes / total) * 100
+      percentage: (bytes / total) * 100,
     }));
 
-  const colors = [
-    'bg-blue-500', 'bg-red-500', 'bg-yellow-500', 'bg-green-500',
-    'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
-  ];
-
   return (
-    <div className="bg-card-bg border border-border-color rounded-2xl p-6 shadow-sm">
-      <h3 className="text-xl font-semibold text-text-main mb-6">Languages</h3>
-      
-      {/* Progress bar */}
-      <div className="w-full h-3 flex rounded-full overflow-hidden mb-6 bg-gray-100 dark:bg-gray-800">
+    <div
+      style={{
+        background: '#141414',
+        border: '1px solid #222',
+        borderRadius: 16,
+        padding: '20px',
+      }}
+    >
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: '#555',
+          display: 'block',
+          marginBottom: 16,
+        }}
+      >
+        Languages
+      </span>
+
+      {/* Segmented bar */}
+      <div
+        style={{
+          width: '100%',
+          height: 6,
+          borderRadius: 99,
+          overflow: 'hidden',
+          display: 'flex',
+          background: '#222',
+          marginBottom: 16,
+          gap: 2,
+        }}
+      >
         {entries.map((lang, idx) => (
           <div
             key={lang.name}
-            className={`h-full ${colors[idx % colors.length]}`}
-            style={{ width: `${lang.percentage}%` }}
             title={`${lang.name}: ${lang.percentage.toFixed(1)}%`}
-          ></div>
+            style={{
+              height: '100%',
+              width: `${lang.percentage}%`,
+              background: getLangColor(lang.name, idx),
+              borderRadius: 99,
+              transition: 'opacity 0.15s',
+              cursor: 'default',
+            }}
+          />
         ))}
       </div>
-      
+
       {/* Legend */}
-      <div className="flex flex-wrap gap-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {entries.map((lang, idx) => (
-          <div key={lang.name} className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length]}`}></div>
-            <span className="text-sm font-medium text-text-main">{lang.name}</span>
-            <span className="text-sm text-text-muted">{lang.percentage.toFixed(1)}%</span>
+          <div
+            key={lang.name}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: getLangColor(lang.name, idx),
+                  flexShrink: 0,
+                  boxShadow: `0 0 4px ${getLangColor(lang.name, idx)}80`,
+                }}
+              />
+              <span style={{ fontSize: 13, color: '#c0c0c0', fontWeight: 500 }}>{lang.name}</span>
+            </div>
+            <span
+              className="mono"
+              style={{ fontSize: 12, color: '#555', fontWeight: 500 }}
+            >
+              {lang.percentage.toFixed(1)}%
+            </span>
           </div>
         ))}
       </div>

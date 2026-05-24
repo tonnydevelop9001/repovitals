@@ -1,66 +1,172 @@
+import { useEffect, useRef } from 'react';
 import type { HealthScoreResult } from '../types/health';
 
 interface ScoreCardProps {
   result: HealthScoreResult;
 }
 
+function getScoreColor(score: number) {
+  if (score >= 85) return '#10b981';
+  if (score >= 70) return '#f59e0b';
+  if (score >= 50) return '#f97316';
+  return '#ef4444';
+}
+
+function getGradeName(grade: string) {
+  const map: Record<string, string> = {
+    'A+': 'Excellent',
+    A: 'Great',
+    'B+': 'Good',
+    B: 'Good',
+    'C+': 'Fair',
+    C: 'Fair',
+    D: 'Poor',
+    F: 'Critical',
+  };
+  return map[grade] ?? grade;
+}
+
 export function ScoreCard({ result }: ScoreCardProps) {
   const { score, grade } = result;
+  const color = getScoreColor(score);
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
+  const ringRef = useRef<SVGCircleElement>(null);
 
-  const getScoreColor = () => {
-    if (score >= 85) return 'text-green-500';
-    if (score >= 70) return 'text-yellow-500';
-    if (score >= 50) return 'text-orange-500';
-    return 'text-red-500';
-  };
-
-  const getScoreBg = () => {
-    if (score >= 85) return 'bg-green-500/10 border-green-500/20';
-    if (score >= 70) return 'bg-yellow-500/10 border-yellow-500/20';
-    if (score >= 50) return 'bg-orange-500/10 border-orange-500/20';
-    return 'bg-red-500/10 border-red-500/20';
-  };
-
-  const circumference = 2 * Math.PI * 45;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  useEffect(() => {
+    if (ringRef.current) {
+      // Animate the ring on mount
+      ringRef.current.style.strokeDashoffset = String(circumference);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (ringRef.current) {
+            ringRef.current.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1)';
+            ringRef.current.style.strokeDashoffset = String(offset);
+          }
+        });
+      });
+    }
+  }, [score, circumference, offset]);
 
   return (
-    <div className={`bg-card-bg border rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-sm ${getScoreBg()}`}>
-      <h3 className="text-xl font-semibold text-text-main mb-6">Overall Health</h3>
-      
-      <div className="relative w-32 h-32 flex items-center justify-center">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+    <div
+      style={{
+        background: '#141414',
+        border: '1px solid #222',
+        borderRadius: 16,
+        padding: '28px 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Subtle top glow matching score color */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 200,
+          height: 80,
+          borderRadius: '50%',
+          background: `${color}18`,
+          filter: 'blur(30px)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      <p
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.1em',
+          color: '#555',
+          textTransform: 'uppercase',
+          marginBottom: 20,
+        }}
+      >
+        Health Score
+      </p>
+
+      {/* SVG ring */}
+      <div style={{ position: 'relative', width: 140, height: 140 }}>
+        <svg
+          viewBox="0 0 120 120"
+          style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}
+        >
+          {/* Track */}
           <circle
-            className="text-gray-200 dark:text-gray-800"
+            cx="60"
+            cy="60"
+            r={radius}
+            fill="none"
+            stroke="#222"
             strokeWidth="8"
-            stroke="currentColor"
-            fill="transparent"
-            r="45"
-            cx="50"
-            cy="50"
           />
+          {/* Progress */}
           <circle
-            className={getScoreColor()}
+            ref={ringRef}
+            cx="60"
+            cy="60"
+            r={radius}
+            fill="none"
+            stroke={color}
             strokeWidth="8"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            stroke="currentColor"
-            fill="transparent"
-            r="45"
-            cx="50"
-            cy="50"
-            style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference}
+            style={{
+              filter: `drop-shadow(0 0 6px ${color}80)`,
+            }}
           />
         </svg>
-        <div className="absolute flex flex-col items-center justify-center">
-          <span className="text-4xl font-extrabold text-text-main">{score}</span>
+        {/* Center text */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 38,
+              fontWeight: 800,
+              color: color,
+              letterSpacing: '-0.04em',
+              lineHeight: 1,
+            }}
+          >
+            {score}
+          </span>
+          <span style={{ fontSize: 12, color: '#444', marginTop: 2 }}>/100</span>
         </div>
       </div>
-      
-      <div className="mt-6">
-        <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide border ${getScoreBg()} ${getScoreColor()}`}>
-          {grade}
+
+      {/* Grade badge */}
+      <div style={{ marginTop: 18 }}>
+        <span
+          style={{
+            background: `${color}18`,
+            border: `1px solid ${color}40`,
+            color,
+            borderRadius: 99,
+            padding: '4px 14px',
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {grade} — {getGradeName(grade)}
         </span>
       </div>
     </div>

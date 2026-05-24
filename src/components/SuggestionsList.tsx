@@ -1,5 +1,3 @@
-import { Lightbulb } from 'lucide-react';
-
 interface SuggestionsListProps {
   suggestions: string[];
 }
@@ -7,34 +5,132 @@ interface SuggestionsListProps {
 export function SuggestionsList({ suggestions }: SuggestionsListProps) {
   if (suggestions.length === 0) {
     return (
-      <div className="bg-card-bg border border-border-color rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center space-x-2 mb-4">
-          <Lightbulb className="w-5 h-5 text-yellow-500" />
-          <h3 className="text-xl font-semibold text-text-main">Suggestions</h3>
+      <div
+        style={{
+          background: '#141414',
+          border: '1px solid #222',
+          borderRadius: 16,
+          padding: '20px',
+        }}
+      >
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: '#555',
+            display: 'block',
+            marginBottom: 12,
+          }}
+        >
+          Suggestions
+        </span>
+        <div
+          style={{
+            background: '#05966912',
+            border: '1px solid #05966930',
+            borderRadius: 10,
+            padding: '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <span style={{ fontSize: 18 }}>🎉</span>
+          <p style={{ fontSize: 13, color: '#10b981', margin: 0, lineHeight: 1.5 }}>
+            No issues found. Your repository looks well-maintained!
+          </p>
         </div>
-        <p className="text-text-muted text-sm">
-          Great job! No major improvements suggested. Your repository looks very healthy.
-        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-card-bg border border-border-color rounded-2xl p-6 shadow-sm">
-      <div className="flex items-center space-x-2 mb-6">
-        <Lightbulb className="w-5 h-5 text-yellow-500" />
-        <h3 className="text-xl font-semibold text-text-main">Improvement Suggestions</h3>
+    <div
+      style={{
+        background: '#141414',
+        border: '1px solid #222',
+        borderRadius: 16,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid #1e1e1e',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: '#555',
+          }}
+        >
+          What to fix
+        </span>
+        <span
+          style={{
+            background: '#f59e0b18',
+            border: '1px solid #f59e0b40',
+            color: '#f59e0b',
+            borderRadius: 99,
+            padding: '2px 10px',
+            fontSize: 11,
+            fontWeight: 700,
+          }}
+        >
+          {suggestions.length} item{suggestions.length !== 1 ? 's' : ''}
+        </span>
       </div>
-      <ul className="space-y-4">
+
+      <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {suggestions.map((suggestion, idx) => (
-          <li key={idx} className="flex items-start space-x-3 text-sm text-text-main bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-800/50 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold text-xs mt-0.5">
+          <div
+            key={idx}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 12,
+              padding: '12px 14px',
+              background: '#1a1a1a',
+              border: '1px solid #222',
+              borderRadius: 10,
+              transition: 'border-color 0.15s',
+            }}
+            onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.borderColor = '#2e2e2e')}
+            onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.borderColor = '#222')}
+          >
+            <span
+              className="mono"
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 6,
+                background: '#f59e0b18',
+                border: '1px solid #f59e0b40',
+                color: '#f59e0b',
+                fontSize: 11,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                marginTop: 1,
+              }}
+            >
               {idx + 1}
             </span>
-            <span className="pt-0.5 leading-relaxed">{suggestion}</span>
-          </li>
+            <span style={{ fontSize: 13, color: '#b0b0b0', lineHeight: 1.6 }}>{suggestion}</span>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

@@ -1,32 +1,86 @@
-import { Code, Activity } from 'lucide-react';
-import { ThemeToggle } from './ThemeToggle';
+import { Activity } from 'lucide-react';
 
 export function Header() {
   return (
-    <header className="border-b border-border-color bg-card-bg/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="bg-primary-600 p-2 rounded-lg">
-            <Activity className="w-5 h-5 text-white" />
+    <header
+      style={{
+        borderBottom: '1px solid #1e1e1e',
+        background: 'rgba(15,15,15,0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: '0 auto',
+          padding: '0 24px',
+          height: 56,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              background: 'linear-gradient(135deg, #059669, #10b981)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 12px #05966950',
+            }}
+          >
+            <Activity size={15} color="#fff" strokeWidth={2.5} />
           </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400">
+          <span
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              color: '#e8e8e8',
+            }}
+          >
             RepoVitals
           </span>
         </div>
-        
-        <div className="flex items-center space-x-4">
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-text-muted hover:text-text-main transition-colors flex items-center space-x-1"
-          >
-            <Code className="w-5 h-5" />
-            <span className="hidden sm:inline text-sm font-medium">GitHub</span>
-          </a>
-          <div className="w-px h-6 bg-border-color"></div>
-          <ThemeToggle />
-        </div>
+
+        {/* Right side */}
+        <a
+          href="https://github.com/tonnydevelop9001/repovitals"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 13,
+            fontWeight: 500,
+            color: '#888',
+            textDecoration: 'none',
+            transition: 'color 0.15s',
+            padding: '6px 10px',
+            borderRadius: 8,
+            border: '1px solid #2a2a2a',
+            background: '#1a1a1a',
+          }}
+          onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#e8e8e8')}
+          onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#888')}
+        >
+          {/* GitHub icon inline SVG */}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <span style={{ display: 'none' }}>GitHub</span>
+          <span>Source</span>
+        </a>
       </div>
     </header>
   );

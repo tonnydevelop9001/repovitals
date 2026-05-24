@@ -50,75 +50,188 @@ function App() {
     }
   };
 
+  const handleReset = () => {
+    setRepoData(null);
+    setHealthResult(null);
+    setError(null);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col font-sans selection:bg-primary-100 selection:text-primary-900 dark:selection:bg-primary-900 dark:selection:text-primary-100">
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#0f0f0f',
+        color: '#e8e8e8',
+        fontFamily: "'Inter', system-ui, sans-serif",
+      }}
+    >
       <Header />
-      
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <main style={{ flex: 1, width: '100%' }}>
+        {/* Hero / search */}
         {!repoData && !isLoading && (
-          <RepoSearchForm onSearch={handleSearch} isLoading={isLoading} />
+          <div
+            style={{
+              background: 'radial-gradient(ellipse 70% 40% at 50% 0%, #05966922 0%, transparent 70%)',
+            }}
+          >
+            <RepoSearchForm onSearch={handleSearch} isLoading={isLoading} />
+          </div>
         )}
 
         {isLoading && <LoadingState />}
 
         {error && (
-          <div className="flex flex-col items-center">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <ErrorMessage message={error} />
-            {!repoData && (
-              <button 
-                onClick={() => setError(null)}
-                className="mt-4 text-primary-600 hover:underline"
-              >
-                &larr; Back to search
-              </button>
-            )}
+            <button
+              onClick={handleReset}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#555',
+                fontSize: 13,
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif',
+                padding: '4px 8px',
+                borderRadius: 6,
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#e8e8e8')}
+              onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#555')}
+            >
+              ← Back to search
+            </button>
           </div>
         )}
 
         {repoData && healthResult && !isLoading && !error && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-16">
-            <div className="flex items-center justify-between mb-8">
+          <div
+            style={{
+              maxWidth: 1100,
+              margin: '0 auto',
+              padding: '32px 24px 64px',
+              animation: 'fadeUp 0.4s ease forwards',
+            }}
+          >
+            {/* Repo title bar */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: 16,
+                marginBottom: 28,
+                flexWrap: 'wrap',
+              }}
+            >
               <div>
-                <h2 className="text-3xl font-bold text-text-main break-all">
-                  {repoData.repo.full_name}
-                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <h2
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 700,
+                      letterSpacing: '-0.03em',
+                      color: '#f0f0f0',
+                      margin: 0,
+                    }}
+                  >
+                    {repoData.repo.full_name}
+                  </h2>
+                  {repoData.repo.archived && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                        background: '#f59e0b18',
+                        border: '1px solid #f59e0b40',
+                        color: '#f59e0b',
+                        borderRadius: 99,
+                        padding: '2px 8px',
+                      }}
+                    >
+                      Archived
+                    </span>
+                  )}
+                </div>
                 {repoData.repo.description && (
-                  <p className="text-text-muted mt-2 text-lg max-w-3xl">
+                  <p style={{ fontSize: 13, color: '#666', margin: '6px 0 0', maxWidth: 600, lineHeight: 1.5 }}>
                     {repoData.repo.description}
                   </p>
                 )}
               </div>
+
               <button
-                onClick={() => {
-                  setRepoData(null);
-                  setHealthResult(null);
+                id="new-search-btn"
+                onClick={handleReset}
+                style={{
+                  background: '#1a1a1a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: 10,
+                  color: '#888',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  fontFamily: 'Inter, sans-serif',
+                  flexShrink: 0,
                 }}
-                className="text-sm font-medium text-text-muted hover:text-text-main transition-colors px-4 py-2 border border-border-color rounded-lg bg-card-bg shadow-sm"
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = '#e8e8e8';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#3a3a3a';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = '#888';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#2a2a2a';
+                }}
               >
-                New Search
+                ← New search
               </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column */}
-              <div className="lg:col-span-1 space-y-6">
+            {/* Main grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gap: 14,
+              }}
+            >
+              {/* Left column */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <ScoreCard result={healthResult} />
                 <RepoSummary repo={repoData.repo} />
                 <LanguageBreakdown languages={repoData.languages} />
               </div>
 
-              {/* Right Column */}
-              <div className="lg:col-span-2 space-y-6">
+              {/* Right column */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <SuggestionsList suggestions={healthResult.suggestions} />
                 <HealthChecklist criteria={healthResult.criteria} />
               </div>
             </div>
-            
-            <div className="mt-16 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-2xl p-6 md:p-8 text-center max-w-3xl mx-auto">
-              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">About the Score</h3>
-              <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
-                RepoVitals uses a simple heuristic model to evaluate repository health based on best practices like having a README, an open-source license, recent activity, and CI/CD workflows. 
-                This score is meant to guide improvements and is not a definitive judgment of the project's quality or utility. All checks are performed locally in your browser using the public GitHub REST API.
+
+            {/* About the score note */}
+            <div
+              style={{
+                marginTop: 32,
+                background: '#141414',
+                border: '1px solid #1e1e1e',
+                borderRadius: 12,
+                padding: '16px 20px',
+                maxWidth: 700,
+                marginLeft: 'auto',
+                marginRight: 'auto',
+              }}
+            >
+              <p style={{ fontSize: 12, color: '#444', margin: 0, lineHeight: 1.6, textAlign: 'center' }}>
+                This score is a heuristic based on common open-source best practices — README, license, activity, CI/CD. 
+                It's not a definitive quality rating. All checks run in your browser via the public GitHub API.
               </p>
             </div>
           </div>
@@ -126,6 +239,13 @@ function App() {
       </main>
 
       <Footer />
+
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
